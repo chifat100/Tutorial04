@@ -1,143 +1,141 @@
 <template>
   <div>
-  <div>
+
     <table >
-      <label >Get By Number</label>
-      <input class="space" type="text" v-model= "get_num" placeholder="enter Number"/>
-      <button class="space" @click ="getByNum" >Search By Num</button>
+        <label >Get By Number</label>
+        <input class="space" type="text" v-model= "ordernumber" placeholder="enter Number"/>
+        <button class="space" @click ="getByNum" >Search By Num</button>
     </table>
 
     <br>
-    <label>Refresh</label> <button class="space" @click="reFresh">Update</button>
+    <table>
+      <label>Delete with ID</label>
+      <input type="text"  v-model="id" placeholder="Type your id">
+      <button class="space" @click="deletePOST">Click here to delete</button>
+    </table>
     <br>
+
     <table>
-      <thead>
-        <tr>
-          <th v-for="column in columns" :key="column">{{ column }}</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr v-for="(row, index) in items" :key="index">
-          <td v-for="(value, key) in row" :key="key">{{ value }}</td>
-        </tr>
-      </tbody>
-
-      <label>Note:</label>
+        <label class="space">note: Need to refresh after create a POST</label>
     </table>
-  </div>
 
-  <br>
+    <br>
 
-  <div>
     <table>
-      <label >orderNo.</label>
-      <input class="space" type="text" v-model ="set_no" placeholder="enter No."/>
-      <label >orderType</label>
-      <input class="space" type="text" v-model ="set_yype" placeholder="enter Type"/>
-      <label >orderName</label>
-      <input class="space" type="text" v-model ="set_name" placeholder="enter Name"/>
-      <label >orderPrice</label>
-      <input class="space" type="text" v-model ="set_price" placeholder="enter price"/>
-      <label >orderAmount</label>
-      <input class="space" type="text" v-model ="set_amount" placeholder="enter amount"/>
-      <button class="space" @click="createPOST">create a POST</button>
+        <label >orderNo.</label>
+        <input class="space" type="text" v-model ="order.orderNo" placeholder="enter No."/>
+        <label >orderType</label>
+        <input class="space" type="text" v-model ="order.orderType" placeholder="enter Type"/>
+        <label >orderName</label>
+        <input class="space" type="text" v-model ="order.orderName" placeholder="enter Name"/>
+        <label >orderPrice</label>
+        <input class="space" type="text" v-model ="order.orderPrice" placeholder="enter price"/>
+        <label >orderAmount</label>
+        <input class="space" type="text" v-model ="order.orderAmount" placeholder="enter amount"/>
+        <button class="space" @click="createPOST">create a POST</button>
     </table>
+
+    <br>
+   
+    <table>
+        <thead>
+          <tr>
+            <th v-for="column in columns" :key="column">{{ column }}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr v-for="(row, index) in items" :key="index">
+            <td v-for="(value, key) in row" :key="key">{{ value }}</td>
+          </tr>
+        </tbody>
+
+        <label>Note:</label>
+    </table>
+
+
+
   </div>
-</div>
   
-
-
 </template>
 
 <script>
-import axios from 'axios'
-import { ref } from 'vue'
+  import axios from 'axios'
+  import { reactive, ref } from 'vue'
 
-export default {
-   
-  setup() {
+  export default {
+
+    setup() {
     
-    const url="http://192.168.20.131:8000/orders";
-    const columns = ['orderID','orderNo.', 'orderType', 'orderName','orderPrice','orderAmount','orderDate']
+      const url="http://192.168.20.131:8000/orders";
+      const columns = ['orderID','orderNo.', 'orderType', 'orderName','orderPrice','orderAmount','orderDate']
 
-    const items = ref('')
-    const numItem = ref('')
+      const items = ref('')
+      const id = ref('')
+      const ordernumber =ref('')
 
-    const get_num = ref('')
+      const order = {
+        "orderNo" : '',
+        "orderType" : '',
+        "orderName" : '',
+        "orderPrice": '',
+        "orderAmount": ''
+      }
 
-    const createPOST = () => {
-      axios.post(url, order)
-        .then(res => {
+
+      axios.get(url).then(res => {
+        items.value = res.data.payload
+        }).catch(error => {
+         console.log(error)
+      })
+
+      const createPOST = () => {
+        axios.post(url, order)
+          .then(res => {
+            console.log(res)
+          })
+      } 
+
+      const updatePOST = () => {
+        axios.put("http://192.168.20.131:8000/orders/64abcbf470de74001d54cabf",order).then(res => {
           console.log(res)
+        }).catch(error => {
+          console.log(error)
         })
-    }
-
-    const reFresh = () => {
-      axios.put("http://192.168.20.131:8000/orders/64abcbf470de74001d54cabf",order).then(res => {
-        console.log(res)
-      }).catch(error => {
-        console.log(error)
-      })
-
-      this.$router.push({
-        path: './src/components/reload',
-        name:'reload'
-      })
-    }
+      }
 
 
-    const getByNum = () =>{
-        var  num = get_num;
-        axios.get(url,{
-          params: num
+      const deletePOST = () =>{
+          axios.delete(`http://192.168.20.131:8000/orders/${id}`).then(res => {
         }).then(res =>{
-          numItem.value = res.data.payload
-        }).then(res => {console.log})
-        
-    }
+          console.log("Deleted post with ID",{id});
+        }).catch(error => {
+            console.log(id)
+        })
     
-
-    var order = {
-      "orderNo" : "05",
-      "orderType" : "pistol,vapor",
-      "orderName" : "Nobody",
-      "orderPrice": "799",
-      "orderAmount": "4"
-    }
-    
-    axios.get(url).then(res => {
-      items.value = res.data.payload
-    }).catch(error => {
-        console.log(error)
-      })
-
-    /* axios.delete(url).then(res => {
-      items.value = res.data.payload
-    }).catch(error => {
-        console.log(error)
-      }) */
-    
+      }
+   
       
 
     
-    return {
+      return {
 
-      reFresh,
-      createPOST, 
-      getByNum,
+        createPOST, 
+        updatePOST,
+        deletePOST,
 
-      items,
-      columns,
+        order,
+        
+        items,
+        columns,
 
-      get_num,
-      numItem,
+        id,
+        ordernumber,
 
+      };
+    },
 
-    };
-  },
-
-}
+  }
 </script>
 
 <style>
